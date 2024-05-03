@@ -1,0 +1,404 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.example.account.mapper.BillMapper" >
+  <resultMap id="BaseResultMap" type="com.example.account.entity.Bill" >
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="money" property="money" jdbcType="REAL" />
+    <result column="consumption_id" property="consumptionId" jdbcType="INTEGER" />
+    <result column="remark" property="remark" jdbcType="VARCHAR" />
+    <result column="record_time" property="recordTime" jdbcType="TIMESTAMP" />
+    <result column="user_id" property="userId" jdbcType="INTEGER" />
+    <result column="house_id" property="houseId" jdbcType="INTEGER" />
+    <result column="bill_type" property="billType" jdbcType="INTEGER" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+    <result column="is_delete" property="isDelete" jdbcType="INTEGER" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, money, consumption_id, remark, record_time, user_id, house_id, bill_type, create_time, update_time,
+    is_delete
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.example.account.entity.BillExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from bill
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select 
+    <include refid="Base_Column_List" />
+    from bill
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+
+  <select id="selectBillDetails" resultType="com.example.account.dto.QueryBillsDTO" parameterType="com.example.account.param.BillManageParam" >
+    SELECT
+	    a.id id,
+	    a.money money,
+	    a.consumption_id consumptionId,
+	    b.name consumptionName,
+        b.is_custom isCustom,
+	    a.remark remark,
+	    a.record_time recordTime,
+	    a.user_id userId,
+	    c.`name` userName,
+	    a.house_id houseId,
+	    a.bill_type billType
+    FROM
+	    `bill` a
+	    LEFT JOIN consumption_type b ON a.consumption_id = b.id and b.is_delete = 0
+	    LEFT JOIN USER c ON c.id = a.user_id
+    WHERE
+	    a.is_delete = 0
+	    AND a.house_id = #{houseId}
+        <if test="userId != null" >
+          AND a.user_id = #{userId}
+        </if>
+        <if test="recordId != null" >
+            AND a.user_id = #{recordId}
+        </if>
+        <if test="billType != null" >
+	      AND a.bill_type = #{billType}
+        </if>
+        <if test="remark != null and remark != '' " >
+            AND a.remark like "%"#{remark}"%"
+        </if>
+        <if test="consumptionId != null" >
+            AND a.consumption_id = #{consumptionId}
+        </if>
+        <if test="beginTime != null" >
+            AND a.record_time &gt;= #{beginTime}
+        </if>
+        <if test="endTime != null" >
+            AND a.record_time &lt;= #{endTime}
+        </if>
+  </select>
+
+  <select id="selectBillTotalMoney" parameterType="com.example.account.param.BillManageParam" resultType="java.lang.Float">
+     SELECT sum(money) money
+     FROM `bill`
+     where is_delete = 0
+           and house_id = #{houseId}
+           and bill_type = #{billType}
+           <if test="userId != null" >
+              AND user_id = #{userId}
+           </if>
+           <if test="recordId != null" >
+              AND user_id = #{recordId}
+           </if>
+           <if test="recordDate != null" >
+             AND record_time &gt;= #{recordDate}
+           </if>
+           <if test="beginTime != null" >
+             AND record_time &gt;= #{beginTime}
+           </if>
+           <if test="endTime != null" >
+              AND record_time &lt;= #{endTime}
+           </if>
+  </select>
+
+  <select id="selectBillTotalMoneyByType" parameterType="com.example.account.param.BillManageParam" resultType="com.example.account.dto.StatisticsByTypeDTO">
+    SELECT
+	    b.`name` name,
+	    sum(a.money) money
+    FROM
+	    `bill` a
+	LEFT JOIN consumption_type b ON a.consumption_id = b.id
+    WHERE
+	    a.is_delete = 0
+        AND a.house_id = #{houseId}
+	    AND a.bill_type = 1
+        <if test="userId != null" >
+            AND a.user_id = #{userId}
+        </if>
+        <if test="recordId != null" >
+            AND a.user_id = #{recordId}
+        </if>
+        <if test="recordTime != null" >
+            AND a.record_time &gt;= #{recordTime}
+        </if>
+        <if test="beginTime != null" >
+            AND a.record_time &gt;= #{beginTime}
+        </if>
+        <if test="endTime != null" >
+            AND a.record_time &lt;= #{endTime}
+        </if>
+    GROUP BY
+	    a.consumption_id
+  </select>
+
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from bill
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.example.account.entity.BillExample" >
+    delete from bill
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.example.account.entity.Bill" >
+    insert into bill (id, money, consumption_id,
+      remark, record_time, user_id, house_id, bill_type,
+      create_time, update_time, is_delete
+      )
+    values (#{id,jdbcType=INTEGER}, #{money,jdbcType=REAL}, #{consumptionId,jdbcType=INTEGER},
+      #{remark,jdbcType=VARCHAR}, #{recordTime,jdbcType=TIMESTAMP}, #{userId,jdbcType=INTEGER},
+      #{houseId,jdbcType=INTEGER}, #{billType,jdbcType=INTEGER},
+      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{isDelete,jdbcType=INTEGER}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.example.account.entity.Bill" >
+    insert into bill
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="money != null" >
+        money,
+      </if>
+      <if test="consumptionId != null" >
+        consumption_Id,
+      </if>
+      <if test="remark != null" >
+        remark,
+      </if>
+      <if test="recordTime != null" >
+        record_time,
+      </if>
+      <if test="userId != null" >
+        user_id,
+      </if>
+      <if test="houseId != null" >
+        house_id,
+      </if>
+      <if test="billType != null" >
+        bill_type,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="updateTime != null" >
+        update_time,
+      </if>
+      <if test="isDelete != null" >
+        is_delete,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="money != null" >
+        #{money,jdbcType=REAL},
+      </if>
+      <if test="consumptionId != null" >
+        #{consumptionId,jdbcType=INTEGER},
+      </if>
+      <if test="remark != null" >
+        #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="recordTime != null" >
+        #{recordTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="userId != null" >
+        #{userId,jdbcType=INTEGER},
+      </if>
+      <if test="houseId != null" >
+        #{houseId,jdbcType=INTEGER},
+      </if>
+      <if test="billType != null" >
+        #{billType,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="isDelete != null" >
+        #{isDelete,jdbcType=INTEGER},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.example.account.entity.BillExample" resultType="java.lang.Integer" >
+    select count(*) from bill
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update bill
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=INTEGER},
+      </if>
+      <if test="record.money != null" >
+        money = #{record.money,jdbcType=REAL},
+      </if>
+      <if test="record.consumptionId != null" >
+        consumption_id = #{record.consumptionId,jdbcType=INTEGER},
+      </if>
+      <if test="record.remark != null" >
+        remark = #{record.remark,jdbcType=VARCHAR},
+      </if>
+      <if test="record.recordTime != null" >
+        record_time = #{record.recordTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.userId != null" >
+        user_id = #{record.userId,jdbcType=INTEGER},
+      </if>
+      <if test="record.houseId != null" >
+        house_id = #{record.houseId,jdbcType=INTEGER},
+      </if>
+      <if test="record.billType != null" >
+        bill_type = #{record.billType,jdbcType=INTEGER},
+      </if>
+      <if test="record.createTime != null" >
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.updateTime != null" >
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.isDelete != null" >
+        is_delete = #{record.isDelete,jdbcType=INTEGER},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update bill
+    set id = #{record.id,jdbcType=INTEGER},
+      money = #{record.money,jdbcType=REAL},
+      consumption_id = #{record.consumptionId,jdbcType=INTEGER},
+      remark = #{record.remark,jdbcType=VARCHAR},
+      record_time = #{record.recordTime,jdbcType=TIMESTAMP},
+      user_id = #{record.userId,jdbcType=INTEGER},
+      house_id = #{record.houseId,jdbcType=INTEGER},
+      bill_type = #{record.billType,jdbcType=INTEGER},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      is_delete = #{record.isDelete,jdbcType=INTEGER}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.example.account.entity.Bill" >
+    update bill
+    <set >
+      <if test="money != null" >
+        money = #{money,jdbcType=REAL},
+      </if>
+      <if test="consumptionId != null" >
+        consumption_id = #{consumptionId,jdbcType=INTEGER},
+      </if>
+      <if test="remark != null" >
+        remark = #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="recordTime != null" >
+        record_time = #{recordTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="userId != null" >
+        user_id = #{userId,jdbcType=INTEGER},
+      </if>
+      <if test="houseId != null" >
+        house_id = #{houseId,jdbcType=INTEGER},
+      </if>
+      <if test="billType != null" >
+        bill_type = #{billType,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="isDelete != null" >
+        is_delete = #{isDelete,jdbcType=INTEGER},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER} and is_delete = 0
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.example.account.entity.Bill" >
+    update bill
+    set money = #{money,jdbcType=REAL},
+      consumption_id = #{consumptionId,jdbcType=INTEGER},
+      remark = #{remark,jdbcType=VARCHAR},
+      record_time = #{recordTime,jdbcType=TIMESTAMP},
+      user_id = #{userId,jdbcType=INTEGER},
+      house_id = #{houseId,jdbcType=INTEGER},
+      bill_type = #{billType,jdbcType=INTEGER},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      is_delete = #{isDelete,jdbcType=INTEGER}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+</mapper>

@@ -1,0 +1,27 @@
+server:
+   port: 8888
+spring:
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver
+    url: jdbc:mysql:///account_system?characterEncoding=utf8&amp;useSSL=false
+    username: root
+    password: 123456
+
+    type: com.alibaba.druid.pool.DruidDataSource
+  devtools:
+    restart:
+      enabled: true
+      additional-paths: src/main/java
+      exclude: WEB-INF/**
+
+pagehelper:
+    helperDialect: mysql
+    supportMethodsArguments: true
+    params: count=countSql
+
+mybatis:
+  type-aliases-package: com.example.account.entity
+
+front:
+  addr: http://localhost:8080
+

@@ -1,0 +1,46 @@
+CREATE TABLE `bill` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `money` float(10,2) DEFAULT NULL,
+  `consumption_id` int NOT NULL DEFAULT '0',
+  `remark` varchar(255) DEFAULT NULL,
+  `record_time` datetime DEFAULT NULL,
+  `user_id` int NOT NULL,
+  `house_id` int NOT NULL,
+  `bill_type` int DEFAULT NULL COMMENT 'Bill types: 1. Consumption, 2. Revenue',
+  `create_time` datetime DEFAULT NULL,
+  `update_time` datetime DEFAULT NULL,
+  `is_delete` int DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `idx_house_id` (`house_id`) USING BTREE,
+  KEY `idx_user_id` (`user_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=27 DEFAULT CHARSET=utf8mb3
+CREATE TABLE `consumption_type` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) DEFAULT NULL,
+  `create_time` datetime DEFAULT NULL,
+  `update_time` datetime DEFAULT NULL,
+  `house_id` int DEFAULT NULL,
+  `is_custom` int DEFAULT NULL,
+  `is_delete` int DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=31 DEFAULT CHARSET=utf8mb3
+CREATE TABLE `house` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `admin_name` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
+  `budget` float(255,0) DEFAULT NULL,
+  `create_time` datetime DEFAULT NULL,
+  `update_time` datetime DEFAULT NULL,
+  `is_delete` int DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb3
+CREATE TABLE `user` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(20) NOT NULL COMMENT 'User name',
+  `password` varchar(200) NOT NULL COMMENT 'User password',
+  `is_admin` tinyint DEFAULT '0' COMMENT 'Administrator: 1 Yes, 0 No',
+  `house_id` int NOT NULL COMMENT 'Family ID',
+  `create_time` datetime DEFAULT NULL COMMENT 'Creation time',
+  `update_time` datetime DEFAULT NULL COMMENT 'Update time',
+  `is_delete` tinyint DEFAULT '0' COMMENT 'Delete: 1 Yes, 0 No',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb3
